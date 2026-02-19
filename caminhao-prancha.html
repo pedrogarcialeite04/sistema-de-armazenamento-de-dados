@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Caminhão Prancha</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Canvas Three.js para fundo 3D -->
+    <canvas id="threejs-canvas"></canvas>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M5 17h14v-2H5v2zm1-4h12V7H6v6zm-2 9h16a1 1 0 001-1V3a1 1 0 00-1-1H4a1 1 0 00-1 1v18a1 1 0 001 1z"/>
+                    </svg>
+                    Gestão de Caminhão Prancha
+                </h1>
+                <button class="btn-primary" id="btnNovoServico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Novo Serviço
+                </button>
+            </div>
+        </header>
+
+        <!-- Estatísticas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalServicos">0</h3>
+                    <p>Total de Serviços</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalKm">0 km</h3>
+                    <p>Quilometragem Total</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalValor">R$ 0,00</h3>
+                    <p>Receita Total</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros e Busca -->
+        <div class="filters-section">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Buscar por contratante, motorista, frota...">
+            </div>
+            <div class="filter-controls">
+                <select id="filterMotorista" class="filter-select">
+                    <option value="">Todos os Motoristas</option>
+                </select>
+                <button class="btn-secondary" id="btnLimparFiltros">Limpar Filtros</button>
+            </div>
+        </div>
+
+        <!-- Lista de Serviços -->
+        <div class="services-section">
+            <div class="section-header">
+                <h2>Serviços Cadastrados</h2>
+                <span class="badge" id="totalBadge">0 serviços</span>
+            </div>
+            <div id="servicosList" class="services-list">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <h3>Nenhum serviço cadastrado</h3>
+                    <p>Clique em "Novo Serviço" para adicionar seu primeiro registro</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Novo Serviço</h2>
+                <button class="btn-close" id="btnCloseModal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="servicoForm" class="modal-body">
+                <div class="form-grid">
+                    <!-- Data -->
+                    <div class="form-group">
+                        <label for="data">Data *</label>
+                        <input type="date" id="data" required>
+                    </div>
+
+                    <!-- Número de Frota -->
+                    <div class="form-group">
+                        <label for="numeroFrota">Número de Frota *</label>
+                        <input type="text" id="numeroFrota" placeholder="Ex: FR-001" required>
+                    </div>
+
+                    <!-- Contratante -->
+                    <div class="form-group full-width">
+                        <label for="contratante">Contratante *</label>
+                        <input type="text" id="contratante" placeholder="Nome do contratante" required>
+                    </div>
+
+                    <!-- Local -->
+                    <div class="form-group full-width">
+                        <label for="local">Local *</label>
+                        <input type="text" id="local" placeholder="Origem → Destino" required>
+                    </div>
+
+                    <!-- Motorista -->
+                    <div class="form-group">
+                        <label for="motorista">Motorista *</label>
+                        <input type="text" id="motorista" placeholder="Nome do motorista" required>
+                    </div>
+
+                    <!-- Responsável -->
+                    <div class="form-group">
+                        <label for="responsavel">Responsável</label>
+                        <input type="text" id="responsavel" placeholder="Nome do responsável">
+                    </div>
+
+                    <!-- KM Saída -->
+                    <div class="form-group">
+                        <label for="kmSaida">KM Saída *</label>
+                        <input type="number" id="kmSaida" placeholder="0" min="0" step="0.1" required>
+                    </div>
+
+                    <!-- KM Chegada -->
+                    <div class="form-group">
+                        <label for="kmChegada">KM Chegada *</label>
+                        <input type="number" id="kmChegada" placeholder="0" min="0" step="0.1" required>
+                    </div>
+
+                    <!-- KM Total (calculado) -->
+                    <div class="form-group">
+                        <label for="kmTotal">KM Total</label>
+                        <input type="number" id="kmTotal" placeholder="Digite o km Total" min="0" step="0.1" required>
+                    </div>
+
+                    <!-- Horário de Saída -->
+                    <div class="form-group">
+                        <label for="horarioSaida">Horário de Saída *</label>
+                        <input type="time" id="horarioSaida" required>
+                    </div>
+
+                    <!-- Horário de Chegada -->
+                    <div class="form-group">
+                        <label for="horarioChegada">Horário de Chegada *</label>
+                        <input type="time" id="horarioChegada" required>
+                    </div>
+
+                    <!-- Valor Total -->
+                    <div class="form-group">
+                        <label for="valorTotal">Valor Total *</label>
+                        <input type="text" id="valorTotal" placeholder="R$ 0,00" required>
+                    </div>
+
+                    <!-- Pedágio -->
+                    <div class="form-group">
+                        <label for="pedagio">Pedágio</label>
+                        <input type="text" id="pedagio" placeholder="R$ 0,00">
+                    </div>
+
+                    <!-- Observação -->
+                    <div class="form-group full-width">
+                        <label for="observacao">Observação</label>
+                        <textarea id="observacao" rows="3" placeholder="Detalhes adicionais do serviço..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelar">Cancelar</button>
+                    <button type="submit" class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Salvar Serviço
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
+    <!-- Script principal -->
+    <script src="script.js"></script>
+</body>
+</html>
