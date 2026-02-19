@@ -311,7 +311,7 @@ localStorage.setItem('servicos-caminhao-prancha', 'SEUS_DADOS_AQUI')
 
 ## 📄 Licença
 
-Uso livre. Modifique conforme necessário.
+
 
 ---
 
